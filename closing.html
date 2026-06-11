@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Closing Malam</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+<style>
+
+.top-bar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+}
+
+.action-group{
+display:flex;
+gap:10px;
+margin:20px 0;
+}
+
+.item-row{
+display:grid;
+grid-template-columns:2fr 1fr auto;
+gap:10px;
+margin-bottom:10px;
+}
+
+.item-row input{
+width:100%;
+}
+
+.delete-btn{
+background:#dc2626;
+color:white;
+border:none;
+padding:10px;
+border-radius:8px;
+cursor:pointer;
+}
+
+.success-box{
+background:#dcfce7;
+padding:15px;
+border-radius:8px;
+margin-top:15px;
+display:none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="top-bar">
+
+<h2>🌙 Closing Malam</h2>
+
+<a href="index.html" class="btn">
+Dashboard
+</a>
+
+</div>
+
+<div class="card">
+
+<label>Nama Petugas</label>
+<input
+type="text"
+id="petugas"
+placeholder="Masukkan nama petugas">
+
+<br><br>
+
+<label>Tanggal</label>
+<input
+type="date"
+id="tanggal">
+
+<div class="action-group">
+
+<button
+class="btn"
+onclick="copyDataKemarin()">
+Copy Data Kemarin
+</button>
+
+<button
+class="btn-success"
+onclick="tambahBaris()">
++ Tambah Barang
+</button>
+
+</div>
+
+<div id="barangContainer">
+
+</div>
+
+<br>
+
+<button
+class="btn"
+onclick="simpanClosing()">
+💾 Simpan Closing
+</button>
+
+<div
+class="success-box"
+id="successBox">
+
+Data berhasil disimpan
+
+</div>
+
+</div>
+
+</div>
+
+<script src="js/config.js"></script>
+
+<script>
+
+document.getElementById("tanggal").value =
+new Date().toISOString().split("T")[0];
+
+const container =
+document.getElementById("barangContainer");
+
+function tambahBaris(
+barang = "",
+qty = ""
+){
+
+const row =
+document.createElement("div");
+
+row.className =
+"item-row";
+
+row.innerHTML = `
+
+<input
+type="text"
+class="barang"
+placeholder="Nama Barang"
+value="${barang}">
+
+<input
+type="number"
+class="qty"
+placeholder="Qty"
+value="${qty}">
+
+<button
+class="delete-btn"
+onclick="hapusBaris(this)">
+X
+</button>
+
+`;
+
+container.appendChild(row);
+
+}
+
+function hapusBaris(btn){
+
+btn.parentElement.remove();
+
+}
+
+tambahBaris();
+
+async function copyDataKemarin(){
+
+try{
+
+const response =
+await fetch(
+SCRIPT_URL +
+"?action=getLastClosing"
+);
+
+const data =
+await response.json();
+
+container.innerHTML = "";
+
+if(data.length === 0){
+
+alert(
+"Belum ada data closing sebelumnya"
+);
+
+return;
+
+}
+
+data.forEach(item=>{
+
+tambahBaris(
+item.barang,
+item.qty
+);
+
+});
+
+}
+catch(error){
+
+console.log(error);
+
+alert(
+"Gagal mengambil data"
+);
+
+}
+
+}
+
+async function simpanClosing(){
+
+const petugas =
+document.getElementById(
+"petugas"
+).value;
+
+const tanggal =
+document.getElementById(
+"tanggal"
+).value;
+
+if(!petugas){
+
+alert(
+"Nama petugas wajib diisi"
+);
+
+return;
+
+}
+
+const barangs =
+document.querySelectorAll(
+".barang"
+);
+
+const qtys =
+document.querySelectorAll(
+".qty"
+);
+
+const items = [];
+
+for(let i=0;i<barangs.length;i++){
+
+if(
+barangs[i].value.trim() !== ""
+){
+
+items.push({
+
+barang:
+barangs[i].value,
+
+qty:
+qtys[i].value || 0
+
+});
+
+}
+
+}
+
+if(items.length === 0){
+
+alert(
+"Belum ada barang"
+);
+
+return;
+
+}
+
+try{
+
+await fetch(
+SCRIPT_URL,
+{
+method:"POST",
+body:JSON.stringify({
+
+type:
+"saveClosing",
+
+tanggal,
+
+petugas,
+
+items
+
+})
+}
+);
+
+document.getElementById(
+"successBox"
+).style.display =
+"block";
+
+setTimeout(()=>{
+
+document.getElementById(
+"successBox"
+).style.display =
+"none";
+
+},3000);
+
+}
+catch(error){
+
+console.log(error);
+
+alert(
+"Gagal menyimpan data"
+);
+
+}
+
+}
+
+</script>
+
+</body>
+</html>

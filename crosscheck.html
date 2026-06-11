@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Cross Check Pagi</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+<style>
+
+.cross-row{
+display:grid;
+grid-template-columns:2fr 1fr 1fr 1fr;
+gap:10px;
+margin-bottom:10px;
+align-items:center;
+}
+
+.cross-row input{
+width:100%;
+}
+
+.good{
+color:green;
+font-weight:bold;
+}
+
+.bad{
+color:red;
+font-weight:bold;
+}
+
+.card{
+margin-bottom:20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="top-bar">
+
+<h2>☀️ Cross Check Pagi</h2>
+
+<a href="index.html" class="btn">
+Dashboard
+</a>
+
+</div>
+
+<div class="card">
+
+<label>Nama Petugas</label>
+
+<input
+type="text"
+id="petugas"
+placeholder="Masukkan nama petugas">
+
+<br><br>
+
+<label>Tanggal</label>
+
+<input
+type="date"
+id="tanggal">
+
+<br><br>
+
+<button
+class="btn"
+onclick="loadClosing()">
+
+🔄 Ambil Data Closing Terakhir
+
+</button>
+
+</div>
+
+<div class="card">
+
+<div id="crossContainer">
+
+</div>
+
+<br>
+
+<button
+class="btn-success"
+onclick="simpanCrossCheck()">
+
+💾 Simpan Cross Check
+
+</button>
+
+</div>
+
+</div>
+
+<script src="js/config.js"></script>
+
+<script>
+
+document.getElementById("tanggal").value =
+new Date().toISOString().split("T")[0];
+
+let closingData = [];
+
+async function loadClosing(){
+
+try{
+
+const response =
+await fetch(
+SCRIPT_URL +
+"?action=getLastClosing"
+);
+
+closingData =
+await response.json();
+
+const container =
+document.getElementById(
+"crossContainer"
+);
+
+container.innerHTML = "";
+
+if(closingData.length === 0){
+
+container.innerHTML =
+"<p>Belum ada data closing.</p>";
+
+return;
+
+}
+
+closingData.forEach((item,index)=>{
+
+container.innerHTML += `
+
+<div class="cross-row">
+
+<div>
+<b>${item.barang}</b>
+</div>
+
+<div>
+
+Closing:
+<b>${item.qty}</b>
+
+</div>
+
+<div>
+
+<input
+type="number"
+id="fisik${index}"
+placeholder="Stok Fisik"
+onkeyup="hitungSelisih(${index},${item.qty})">
+
+</div>
+
+<div
+id="hasil${index}">
+-
+</div>
+
+</div>
+
+`;
+
+});
+
+}
+catch(error){
+
+console.log(error);
+
+alert(
+"Gagal mengambil data closing"
+);
+
+}
+
+}
+
+function hitungSelisih(index,stokMalam){
+
+const fisik =
+parseInt(
+document.getElementById(
+`fisik${index}`
+).value
+) || 0;
+
+const selisih =
+fisik - stokMalam;
+
+const hasil =
+document.getElementById(
+`hasil${index}`
+);
+
+if(selisih === 0){
+
+hasil.innerHTML =
+`<span class="good">✔ Cocok</span>`;
+
+}else{
+
+hasil.innerHTML =
+`<span class="bad">${selisih}</span>`;
+
+}
+
+}
+
+async function simpanCrossCheck(){
+
+const petugas =
+document.getElementById(
+"petugas"
+).value;
+
+const tanggal =
+document.getElementById(
+"tanggal"
+).value;
+
+if(!petugas){
+
+alert(
+"Nama petugas wajib diisi"
+);
+
+return;
+
+}
+
+const items = [];
+
+closingData.forEach((item,index)=>{
+
+const fisik =
+parseInt(
+document.getElementById(
+`fisik${index}`
+).value
+) || 0;
+
+items.push({
+
+barang:
+item.barang,
+
+stokMalam:
+parseInt(item.qty),
+
+stokFisik:
+fisik,
+
+selisih:
+fisik - parseInt(item.qty)
+
+});
+
+});
+
+try{
+
+await fetch(
+SCRIPT_URL,
+{
+method:"POST",
+body:JSON.stringify({
+
+type:
+"saveCrossCheck",
+
+tanggal,
+
+petugas,
+
+items
+
+})
+}
+);
+
+alert(
+"Cross Check berhasil disimpan"
+);
+
+}
+catch(error){
+
+console.log(error);
+
+alert(
+"Gagal menyimpan data"
+);
+
+}
+
+}
+
+loadClosing();
+
+</script>
+
+</body>
+</html>

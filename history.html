@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>Riwayat Laporan</title>
+
+<link rel="stylesheet"
+href="css/style.css">
+
+<style>
+
+.tabs{
+display:flex;
+gap:10px;
+margin-bottom:20px;
+}
+
+.tab-btn{
+padding:12px 20px;
+border:none;
+cursor:pointer;
+background:#2563eb;
+color:white;
+border-radius:8px;
+}
+
+.section{
+display:none;
+}
+
+.section.active{
+display:block;
+}
+
+.table-wrapper{
+overflow:auto;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="top-bar">
+
+<h2>📊 Riwayat Laporan</h2>
+
+<a
+href="index.html"
+class="btn">
+
+Dashboard
+
+</a>
+
+</div>
+
+<div class="tabs">
+
+<button
+class="tab-btn"
+onclick="showTab('closing')">
+
+Closing
+
+</button>
+
+<button
+class="tab-btn"
+onclick="showTab('crosscheck')">
+
+Cross Check
+
+</button>
+
+</div>
+
+<div
+id="closingSection"
+class="section active">
+
+<div class="card">
+
+<h3>Riwayat Closing</h3>
+
+<br>
+
+<div class="table-wrapper">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Tanggal</th>
+<th>Petugas</th>
+<th>Barang</th>
+<th>Qty</th>
+
+</tr>
+
+</thead>
+
+<tbody
+id="closingBody">
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+<div
+id="crossSection"
+class="section">
+
+<div class="card">
+
+<h3>Riwayat Cross Check</h3>
+
+<br>
+
+<div class="table-wrapper">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Tanggal</th>
+<th>Petugas</th>
+<th>Barang</th>
+<th>Closing</th>
+<th>Fisik</th>
+<th>Selisih</th>
+
+</tr>
+
+</thead>
+
+<tbody
+id="crossBody">
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script src="js/config.js"></script>
+
+<script>
+
+function showTab(tab){
+
+document
+.getElementById(
+"closingSection"
+)
+.classList
+.remove("active");
+
+document
+.getElementById(
+"crossSection"
+)
+.classList
+.remove("active");
+
+if(tab === "closing"){
+
+document
+.getElementById(
+"closingSection"
+)
+.classList
+.add("active");
+
+}else{
+
+document
+.getElementById(
+"crossSection"
+)
+.classList
+.add("active");
+
+}
+
+}
+
+async function loadClosingHistory(){
+
+const response =
+await fetch(
+SCRIPT_URL +
+"?action=getHistory"
+);
+
+const data =
+await response.json();
+
+const tbody =
+document.getElementById(
+"closingBody"
+);
+
+tbody.innerHTML = "";
+
+data.reverse().forEach(item=>{
+
+tbody.innerHTML += `
+
+<tr>
+
+<td>${item.tanggal}</td>
+
+<td>${item.petugas}</td>
+
+<td>${item.barang}</td>
+
+<td>${item.qty}</td>
+
+</tr>
+
+`;
+
+});
+
+}
+
+async function loadCrossHistory(){
+
+const response =
+await fetch(
+SCRIPT_URL +
+"?action=getCrossHistory"
+);
+
+const data =
+await response.json();
+
+const tbody =
+document.getElementById(
+"crossBody"
+);
+
+tbody.innerHTML = "";
+
+data.reverse().forEach(item=>{
+
+const warna =
+item.selisih == 0
+? "green"
+: "red";
+
+tbody.innerHTML += `
+
+<tr>
+
+<td>${item.tanggal}</td>
+
+<td>${item.petugas}</td>
+
+<td>${item.barang}</td>
+
+<td>${item.stokMalam}</td>
+
+<td>${item.stokFisik}</td>
+
+<td
+style="color:${warna};
+font-weight:bold;">
+
+${item.selisih}
+
+</td>
+
+</tr>
+
+`;
+
+});
+
+}
+
+loadClosingHistory();
+
+loadCrossHistory();
+
+</script>
+
+</body>
+</html>
