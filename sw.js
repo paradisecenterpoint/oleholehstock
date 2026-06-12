@@ -1,15 +1,17 @@
-const CACHE_NAME = "hotel-booking-v1";
+const CACHE_NAME = "stock-app-v1";
 
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll([
-        "./",
-        "./index.html"
-      ]);
-    })
-  );
-});
+const urlsToCache = [
+
+  "./",
+  "./index.html",
+  "./closing.html",
+  "./crosscheck.html",
+  "./history.html",
+  "./style.css",
+  "./config.js"
+
+];
+  
 
 self.addEventListener("fetch", event => {
   event.respondWith(
