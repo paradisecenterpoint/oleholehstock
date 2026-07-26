@@ -293,29 +293,37 @@ return;
 
 try{
 
-await fetch(
-SCRIPT_URL,
-{
-method:"POST",
-body:JSON.stringify({
-
-type:
-"saveClosing",
-
-tanggal,
-
-petugas,
-
-items
-
-})
-}
+const response = await fetch(
+  SCRIPT_URL,
+  {
+    method: "POST",
+    body: JSON.stringify({
+      type: "saveClosing",
+      tanggal,
+      petugas,
+      items
+    })
+  }
 );
 
-document.getElementById(
-"successBox"
-).style.display =
-"block";
+const result = await response.json();
+
+if(result.success){
+
+    document.getElementById("successBox").innerHTML =
+    "✅ Closing berhasil disimpan";
+
+    document.getElementById("successBox").style.display = "block";
+
+    setTimeout(()=>{
+        document.getElementById("successBox").style.display="none";
+    },3000);
+
+}else{
+
+    alert(result.message);
+
+}
 
 setTimeout(()=>{
 
